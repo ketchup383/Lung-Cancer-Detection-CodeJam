@@ -1,1 +1,33 @@
-<p>cancer-detection works!</p>
+<div class="background">
+    <form
+        class="border-box"
+        [formGroup]="cancerForm"
+        (ngSubmit)="onSubmit()"
+    >
+        <div class="headers">
+            <header class="title">Lung Histology Classifier</header>
+            <header class="instructions">Enter user ID and upload image below</header>
+        </div>
+        
+        <div class="inputMedicare">
+            <label class="labeler">Medicare Number:</label>
+            <input style="margin-top: 8px;" class="inputID" type="text" placeholder="ABCD 1234 5678" formControlName="medicare" required>
+            @if (cancerForm.get('medicare')?.invalid && (cancerForm.get('medicare')?.touched || cancerForm.get('medicare')?.dirty)) {
+                <small class="error">Please enter a valid Medicare number.</small>
+            }
+        </div>
+
+        <div class="uploadPhoto">
+            <input id="fileUpload" type="file" class="upload" formControlName="photo" accept="image/*" (change)="onFileSelected($event)" required>
+            <label for="fileUpload" class="file-btn">Upload Photo</label>
+        </div>
+            @if (selectedFile) {
+                <span style="margin-top: 8px;" class="file-name">File uploaded: {{ selectedFile.name }}</span>
+            }
+            @if (cancerForm.get('photo')?.invalid && (cancerForm.get('photo')?.touched || cancerForm.get('photo')?.dirty)) {
+                <small class="error">Please upload an image file.</small>
+            }
+        
+        <button class="submitButton" type="submit" [disabled]="cancerForm.invalid">Check for Cancer</button>
+    </form>
+</div>
