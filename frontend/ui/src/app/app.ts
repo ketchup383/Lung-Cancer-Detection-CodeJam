@@ -1,10 +1,9 @@
 import { Component, signal } from '@angular/core';
-import { CancerDetection } from './cancer-detection/cancer-detection';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [CancerDetection],
-
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
