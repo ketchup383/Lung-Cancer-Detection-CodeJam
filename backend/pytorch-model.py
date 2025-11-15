@@ -2,25 +2,30 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader, random_split
-
-# Handling image data and transfer learning
+# Imports for handling image data and transfer learning
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 import timm
-
 # Data utilities and visualization
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 import os
 
-# 1. DATASET AND DATALOADER SETUP
-# Dataset has been split into train, valid, and test folders
-base_data_dir = r'./data_splits' 
+# --- 1. DATASET AND DATALOADER SETUP ---
 
-# Handle histological slides and data labeling
+# IMPORTANT: SET YOUR BASE PATH HERE
+# Replace this path with the directory where you downloaded and unzipped the LC25000 lung data.
+# We assume the structure is: [base_data_dir]/train/lung_n, [base_data_dir]/train/lung_aca, etc.
+base_data_dir = r'path/to/your/LC25000/lung_image_sets' 
+
 class HistologyImageDataset(Dataset):
-    def __init__(self, data_dir, transform = None):
+    """
+    Custom Dataset class based on ImageFolder for handling histology images.
+    It automatically labels data based on subdirectory names.
+    """
+    def __init__(self, data_dir, transform=None):
+        # ImageFolder automatically handles labels based on subfolders (e.g., lung_n, lung_aca, lung_scc)
         self.data = ImageFolder(data_dir, transform=transform)
 
     def __len__(self):
@@ -31,76 +36,81 @@ class HistologyImageDataset(Dataset):
     
     @property
     def classes(self):
-        # Return class names based on directory name
+        """Returns the list of class names inferred from directory names."""
         return self.data.classes
 
-# 2. TRANSFORMATION AND DATA LOADING 
+# --- 2. TRANSFORMATION AND DATA LOADING ---
+
+# The LC25000 images are large (e.g., 768x768). Resize to a common size for EfficientNet.
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize((224, 224)), # EfficientNet_B0 prefers 224x224 input
     transforms.ToTensor(),
-    # Apply standard EfficientNet normalization for pre-trained
+    # Normalization parameters from ImageNet (standard practice for pre-trained models)
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
 # Define paths for the split data
 train_folder = os.path.join(base_data_dir, 'train')
 valid_folder = os.path.join(base_data_dir, 'valid')
-test_folder = os.path.join(base_data_dir, 'test')
+test_folder = os.path.join(base_data_dir, 'test') # Note: LC25000 often uses 'test' for validation
 
 # Create datasets
-train_dataset = HistologyImageDataset(train_folder, transform = transform)
-valid_dataset = HistologyImageDataset(valid_folder, transform = transform)
-test_dataset = HistologyImageDataset(test_folder, transform = transform)
+train_dataset = HistologyImageDataset(train_folder, transform=transform)
+valid_dataset = HistologyImageDataset(valid_folder, transform=transform)
+test_dataset = HistologyImageDataset(test_folder, transform=transform)
 
-# Determine number of classes (lung_n, lung_aca, lung_scc) --> 3
+# Determine the number of classes (should be 3: lung_n, lung_aca, lung_scc)
 NUM_CLASSES = len(train_dataset.classes)
 print(f"Detected Classes: {train_dataset.classes}")
 print(f"Number of Output Classes for Model: {NUM_CLASSES}")
 
 # Create DataLoaders
 BATCH_SIZE = 32
-train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle = True)
-valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle = False)
-test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle = False)
+train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 # Map target index to class name for prediction output
 target_to_class = {i: c for i, c in enumerate(train_dataset.classes)}
 
-# 3. PYTORCH MODEL
+# --- 3. PYTORCH MODEL DEFINITION ---
 
 class HistologyClassifier(nn.Module):
     def __init__(self, num_classes):
         super(HistologyClassifier, self).__init__()
 
-        # Use EfficientNet-B0 as model
-        self.base_model = timm.create_model('efficientnet_b0', pretrained = True, num_classes=num_classes)
+        # Use EfficientNet-B0 as the base model for transfer learning
+        # 'pretrained=True' loads weights trained on ImageNet
+        self.base_model = timm.create_model('efficientnet_b0', pretrained=True, num_classes=num_classes)
+        
+        # NOTE: When setting num_classes in timm.create_model, it automatically
+        # replaces the final classification layer, making the model ready.
         
     def forward(self, x): 
+        # The base_model handles the features and final classification layer
         return self.base_model(x)
 
-model = HistologyClassifier(num_classes = NUM_CLASSES)
+# Initialize the model with the detected number of classes (expected 3)
+model = HistologyClassifier(num_classes=NUM_CLASSES)
 
-# Loss function
+# Loss function and Optimizer
 criterion = nn.CrossEntropyLoss()
-# Optimizer
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# Use GPU if available, otherwise CPU
+# Set device (GPU if available, otherwise CPU)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-# 4. TRAINING LOOP
+# --- 4. TRAINING LOOP ---
 num_epoch = 5 
 train_losses, val_losses = [], []
-val_accuracies = []
 print(f"Starting training on device: {device}")
 
 for epoch in range(num_epoch):
     # Training Phase
     model.train()
     running_loss = 0.0
-
-    for images, labels in tqdm(train_loader, desc = f'Epoch {epoch + 1} Training'):
+    for images, labels in tqdm(train_loader, desc=f'Epoch {epoch+1} Training'):
         images, labels = images.to(device), labels.to(device)
         
         optimizer.zero_grad()
@@ -135,59 +145,34 @@ for epoch in range(num_epoch):
 
     val_loss = running_loss / len(valid_loader.dataset)
     val_accuracy = correct_predictions / total_samples
-    val_losses.append(val_loss)
-    val_accuracies.append(val_accuracy)
+    # --- BUG FIX: Append the correct loss variable ---
+    val_losses.append(val_loss) 
 
-    print(f"Epoch {epoch + 1}/{num_epoch} - Train loss: {train_loss: .4f}, Validation loss: {val_loss: .4f}, Validation Accuracy: {val_accuracy: .4f}")
+    print(f"Epoch {epoch+1}/{num_epoch} - Train loss: {train_loss:.4f}, Validation loss: {val_loss:.4f}, Validation Accuracy: {val_accuracy:.4f}")
 
-# 5. MODEL SAVING (CRITICAL FOR DEPLOYMENT)
+# --- 5. MODEL SAVING (CRITICAL FOR DEPLOYMENT) ---
 model_save_path = 'histology_classifier_final.pth'
 torch.save(model.state_dict(), model_save_path)
 print(f"\nModel weights successfully saved to: {model_save_path}")
-print("*Use this file for FastAPI backend.")
+print("This file should be used in your FastAPI backend for deployment.")
 
-# 6. PREDICTION INTERPRETATION (FOR WEB APP)
+# --- 6. PREDICTION INTERPRETATION FOR WEB APP ---
 
-# def interpret_binary_result(prediction_index, classes):
-#     predicted_class = classes[prediction_index]
+def interpret_binary_result(prediction_index, classes):
+    """
+    Converts the 3-class prediction into the required binary 'Cancerous' or 'Non-Cancerous' result.
+    This logic will be mirrored in your FastAPI service.
+    """
+    predicted_class = classes[prediction_index]
     
-#     if predicted_class == 'lung_n':
-#         return "Non-Cancerous"
-#     elif predicted_class in ['lung_aca', 'lung_scc']:
-#         return "Cancerous"
-#     else:
-#         return "Uncertain"
+    if predicted_class == 'lung_n':
+        return "Non-Cancerous"
+    elif predicted_class in ['lung_aca', 'lung_scc']:
+        return "Cancerous"
+    else:
+        return "Uncertain"
 
-# print("\n--- Prediction Interpretation Logic ---")
-# print(f"Example 1: Model predicts index 0 (if index 0 maps to {target_to_class.get(0)}): Result -> {interpret_binary_result(0, target_to_class)}")
-# print(f"Example 2: Model predicts index 1 (if index 1 maps to {target_to_class.get(1)}): Result -> {interpret_binary_result(1, target_to_class)}")
-# print(f"Example 3: Model predicts index 2 (if index 2 maps to {target_to_class.get(2)}): Result -> {interpret_binary_result(2, target_to_class)}")
-
-def plot_training_results(train_losses, val_losses, val_accuracies):
-    epochs = range(1, len(train_losses) + 1)
-
-    # First plot: Training and Validation Loss
-    plt.figure(figsize = (10, 5))
-    plt.plot(epochs, train_losses, 'b', label='Training Loss')
-    plt.plot(epochs, val_losses, 'r', label='Validation Loss')
-    plt.title('Loss over Epochs (Detecting Overfitting)')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss (CrossEntropy)')
-    plt.legend()
-    plt.grid(True)
-    plt.show() # Display loss plot
-    
-    # Second plot: Validation Accuracy
-    plt.figure(figsize=(10, 5))
-    plt.plot(epochs, val_accuracies, 'g', label='Validation Accuracy', marker='o')
-    plt.title('Validation Accuracy over Epochs')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.legend()
-    plt.grid(True)
-    plt.show() # Display accuracy plot
-
-# Call the plotting function after the training loop completes
-if num_epoch > 0:
-    plot_training_results(train_losses, val_losses, val_accuracies)
-    print("\nTraining plots generated.")
+print("\n--- Prediction Interpretation Logic ---")
+print(f"Example 1: Model predicts index 0 (if index 0 maps to {target_to_class.get(0)}): Result -> {interpret_binary_result(0, target_to_class)}")
+print(f"Example 2: Model predicts index 1 (if index 1 maps to {target_to_class.get(1)}): Result -> {interpret_binary_result(1, target_to_class)}")
+print(f"Example 3: Model predicts index 2 (if index 2 maps to {target_to_class.get(2)}): Result -> {interpret_binary_result(2, target_to_class)}")
