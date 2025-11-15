@@ -183,6 +183,7 @@
 
 .result-section {
   margin-top: 24px;
+  width: stretch;
   padding: 20px 24px;
   border-radius: 16px;
   background: white;       
@@ -211,6 +212,7 @@
 .error-header {
   margin: 0;
   font-size: 1rem;
+  width: stretch;
   font-weight: 500;
   color: #b91c1c;           
   padding: 10px 14px;
