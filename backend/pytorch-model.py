@@ -14,6 +14,7 @@ import numpy as np
 from tqdm import tqdm
 import os
 from tqdm import tqdm
+import os
 
 # 1. DATASET AND DATALOADER SETUP
 # Dataset has been split into train, valid, and test folders
@@ -58,68 +59,20 @@ NUM_CLASSES = len(train_dataset.classes)
 print(f"Detected Classes: {train_dataset.classes}")
 print(f"Number of Output Classes for Model: {NUM_CLASSES}")
 
-        # Map efficientnet output:
-        # lung_n   → benign (0)
-        # lung_aca → cancerous (1)
-        # lung_scc → cancerous (1)
-        self.binary_map = {
-            "lung_n": 0,
-            "lung_aca": 1,
-            "lung_scc": 1
-        }
-
-    def __len__(self):
-        return len(self.folder)
-
-    def __getitem__(self, idx):
-        image, original_label = self.folder[idx]
-        class_name = self.folder.classes[original_label]
-        binary_label = self.binary_map[class_name]
-        return image, torch.tensor(binary_label)
-
-    @property
-    def classes(self):
-        return ["benign", "cancerous"]
-
-
-# Load dataset (no train/valid/test folders needed)
-full_dataset = BinaryHistologyDataset(base_data_dir, transform=transform)
-
-# Split 80/10/10
-total_len = len(full_dataset)
-train_len = int(0.8 * total_len)
-valid_len = int(0.1 * total_len)
-test_len = total_len - train_len - valid_len
-
-train_dataset, valid_dataset, test_dataset = random_split(
-    full_dataset, [train_len, valid_len, test_len]
-)
-
-print("Dataset sizes:")
-print("Train:", len(train_dataset))
-print("Valid:", len(valid_dataset))
-print("Test : ", len(test_dataset))
-
-
-# ---------------------------
-# 2. DATA LOADERS
-# ---------------------------
+# Create DataLoaders
 BATCH_SIZE = 32
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle = True)
 valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle = False)
 test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle = False)
 
+# Map target index to class name for prediction output
+target_to_class = {i: c for i, c in enumerate(train_dataset.classes)}
 
 # 3. PYTORCH MODEL
 
-class HistologyBinaryClassifier(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.model = timm.create_model(
-            'efficientnet_b0',
-            pretrained=True,
-            num_classes=2  # binary output
-        )
+class HistologyClassifier(nn.Module):
+    def __init__(self, num_classes):
+        super(HistologyClassifier, self).__init__()
 
         # Use EfficientNet-B0 as model
         self.base_model = timm.create_model('efficientnet_b0', pretrained = True, num_classes=num_classes)
@@ -146,13 +99,12 @@ print(f"Starting training on device: {device}")
 
 # ---------------------------
 # 4. TRAINING LOOP
-# ---------------------------
+num_epoch = 5 
+train_losses, val_losses = [], []
+print(f"Starting training on device: {device}")
 
-EPOCHS = 5
-print(f"Training on {device}")
-
-for epoch in range(EPOCHS):
-    # --- TRAIN ---
+for epoch in range(num_epoch):
+    # Training Phase
     model.train()
     running_loss = 0.0
 
@@ -160,27 +112,34 @@ for epoch in range(EPOCHS):
         images, labels = images.to(device), labels.to(device)
         
         optimizer.zero_grad()
-        out = model(X)
-        loss = criterion(out, y)
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        
         loss.backward()
         optimizer.step()
+        
+        running_loss += loss.item() * labels.size(0)
+    
+    train_loss = running_loss / len(train_loader.dataset)
+    train_losses.append(train_loss)
 
-        train_loss += loss.item() * y.size(0)
-
-    train_loss /= len(train_loader.dataset)
-
-
-    # --- VALIDATION ---
+    # Validation Phase
     model.eval()
-    val_loss = 0
-    correct = 0
-
+    running_loss = 0.0
+    correct_predictions = 0
+    total_samples = 0
+    
     with torch.no_grad():
-        for X, y in tqdm(valid_loader, desc=f"Epoch {epoch+1} Validation"):
-            X, y = X.to(device), y.to(device)
-            out = model(X)
-            loss = criterion(out, y)
-            val_loss += loss.item() * y.size(0)
+        for images, labels in tqdm(valid_loader, desc=f'Epoch {epoch+1} Validation'):
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            
+            running_loss += loss.item() * labels.size(0)
+            
+            _, predicted = torch.max(outputs.data, 1)
+            total_samples += labels.size(0)
+            correct_predictions += (predicted == labels).sum().item()
 
     val_loss = running_loss / len(valid_loader.dataset)
     val_accuracy = correct_predictions / total_samples
