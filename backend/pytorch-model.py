@@ -146,17 +146,17 @@ print("*Use this file for FastAPI backend.")
 
 # 6. PREDICTION INTERPRETATION (FOR WEB APP)
 
-def interpret_binary_result(prediction_index, classes):
-    predicted_class = classes[prediction_index]
+# def interpret_binary_result(prediction_index, classes):
+#     predicted_class = classes[prediction_index]
     
-    if predicted_class == 'lung_n':
-        return "Non-Cancerous"
-    elif predicted_class in ['lung_aca', 'lung_scc']:
-        return "Cancerous"
-    else:
-        return "Uncertain"
+#     if predicted_class == 'lung_n':
+#         return "Non-Cancerous"
+#     elif predicted_class in ['lung_aca', 'lung_scc']:
+#         return "Cancerous"
+#     else:
+#         return "Uncertain"
 
-print("\n--- Prediction Interpretation Logic ---")
-print(f"Example 1: Model predicts index 0 (if index 0 maps to {target_to_class.get(0)}): Result -> {interpret_binary_result(0, target_to_class)}")
-print(f"Example 2: Model predicts index 1 (if index 1 maps to {target_to_class.get(1)}): Result -> {interpret_binary_result(1, target_to_class)}")
-print(f"Example 3: Model predicts index 2 (if index 2 maps to {target_to_class.get(2)}): Result -> {interpret_binary_result(2, target_to_class)}")
+# print("\n--- Prediction Interpretation Logic ---")
+# print(f"Example 1: Model predicts index 0 (if index 0 maps to {target_to_class.get(0)}): Result -> {interpret_binary_result(0, target_to_class)}")
+# print(f"Example 2: Model predicts index 1 (if index 1 maps to {target_to_class.get(1)}): Result -> {interpret_binary_result(1, target_to_class)}")
+# print(f"Example 3: Model predicts index 2 (if index 2 maps to {target_to_class.get(2)}): Result -> {interpret_binary_result(2, target_to_class)}")
