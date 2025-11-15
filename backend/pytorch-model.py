@@ -92,6 +92,7 @@ model.to(device)
 # 4. TRAINING LOOP
 num_epoch = 5 
 train_losses, val_losses = [], []
+val_accuracies = []
 print(f"Starting training on device: {device}")
 
 for epoch in range(num_epoch):
@@ -134,7 +135,8 @@ for epoch in range(num_epoch):
 
     val_loss = running_loss / len(valid_loader.dataset)
     val_accuracy = correct_predictions / total_samples
-    val_losses.append(val_loss) 
+    val_losses.append(val_loss)
+    val_accuracies.append(val_accuracy)
 
     print(f"Epoch {epoch + 1}/{num_epoch} - Train loss: {train_loss: .4f}, Validation loss: {val_loss: .4f}, Validation Accuracy: {val_accuracy: .4f}")
 
@@ -160,3 +162,32 @@ print("*Use this file for FastAPI backend.")
 # print(f"Example 1: Model predicts index 0 (if index 0 maps to {target_to_class.get(0)}): Result -> {interpret_binary_result(0, target_to_class)}")
 # print(f"Example 2: Model predicts index 1 (if index 1 maps to {target_to_class.get(1)}): Result -> {interpret_binary_result(1, target_to_class)}")
 # print(f"Example 3: Model predicts index 2 (if index 2 maps to {target_to_class.get(2)}): Result -> {interpret_binary_result(2, target_to_class)}")
+
+def plot_training_results(train_losses, val_losses, val_accuracies):
+    epochs = range(1, len(train_losses) + 1)
+
+    # First plot: Training and Validation Loss
+    plt.figure(figsize = (10, 5))
+    plt.plot(epochs, train_losses, 'b', label='Training Loss')
+    plt.plot(epochs, val_losses, 'r', label='Validation Loss')
+    plt.title('Loss over Epochs (Detecting Overfitting)')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss (CrossEntropy)')
+    plt.legend()
+    plt.grid(True)
+    plt.show() # Display loss plot
+    
+    # Second plot: Validation Accuracy
+    plt.figure(figsize=(10, 5))
+    plt.plot(epochs, val_accuracies, 'g', label='Validation Accuracy', marker='o')
+    plt.title('Validation Accuracy over Epochs')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.grid(True)
+    plt.show() # Display accuracy plot
+
+# Call the plotting function after the training loop completes
+if num_epoch > 0:
+    plot_training_results(train_losses, val_losses, val_accuracies)
+    print("\nTraining plots generated.")
