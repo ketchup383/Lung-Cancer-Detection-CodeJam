@@ -1,0 +1,182 @@
+.body{
+    width: 100%;
+    height: 100%;
+    background-color: rgba(91, 135, 178, 0.1);
+}
+.background {
+
+     width: 100%;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 4rem 2rem;
+}
+
+.border-box {
+    display: flex;
+    padding: 16px 24px 24px 24px;
+    min-width: 600px;
+    padding-right: 24px;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-shrink: 0;
+
+    border-radius: var(--modal-border-radius, 16px);
+    background: #FFF;
+
+    /* Modal Shadow */
+    box-shadow: 0 0 40px 10px rgba(91, 135, 178, 0.25);
+}
+
+.labeler, .file-btn, .file-name, .error {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.headers {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    width: 100%;
+}
+
+.title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 120%;
+    color: rgb(33, 37, 41);
+}
+
+.instructions {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 160%;
+    color: rgba(33, 37, 41, 0.8);
+}
+
+.inputMedicare {
+    width: 100%;
+    height: fit-content;
+    margin-bottom: 32px;
+}
+
+.inputID {
+    display: flex;
+    width: stretch;
+    height: 48px;
+    padding: var(--half-em, 8px) var(--em, 16px);
+    align-items: center;
+    gap: 10px;
+    align-self: stretch;
+    border-radius: 6px;
+    background: #F6F6F6;
+    border: 2px rgba(91, 135, 178, 0.5);
+
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 140%;
+    color: rgba(33, 37, 41, 0.8);
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inputID::placeholder {
+    color: rgba(33, 37, 41, 0.5);
+}
+
+.inputID:focus {
+    border: 2px solid rgb(91, 135, 178);
+    box-shadow: 0 0 0 3px rgba(91, 135, 178, 0.25);
+    outline: none;
+}
+
+.uploadPhoto {
+  background: white;  
+  width: stretch; 
+  height: 150px;
+  border: 2px dashed rgba(91, 135, 178, 0.75);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.upload {
+  display: none;
+}
+
+.file-btn {
+  background-color: rgb(27, 40, 53);
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;             
+  padding: 0.6rem 1.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.file-btn:hover {
+  background-color: rgb(76, 115, 154);         
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
+}
+
+.file-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.14);
+}
+
+.submitButton {
+    display: inline-flex;
+    margin-top: 48px;
+    height: var(--quadruple-em, 64px);
+    width: stretch;
+    padding: var(--em, 16px) var(--double-em, 32px);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    border-radius: var(--half-em, 8px);
+
+    background-color: rgb(27, 40, 53);
+
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 140%;
+    color: white;
+    transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+    background-color: rgba(27, 40, 53, 0.80);
+    cursor: pointer;
+}
+
+.submitButton:active {
+    background-color: rgba(27, 40, 53, 0.60);
+}
+
+.submitButton:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.error {
+    margin-top: 8px;
+    color: var(--Primitives-Red-600, #EF1C42);
+    font-size: 12px;
+}
