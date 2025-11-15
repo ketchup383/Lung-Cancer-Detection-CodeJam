@@ -1,9 +1,11 @@
 <div class="background">
-    <form
+    @if (!informationReceived() || tryAgain) {
+        <form
         class="border-box"
         [formGroup]="cancerForm"
         (ngSubmit)="onSubmit()"
-    >
+        >
+
         <div class="headers">
             <header class="title">Lung Histology Classifier</header>
             <header class="instructions">Enter user ID and upload image below</header>
