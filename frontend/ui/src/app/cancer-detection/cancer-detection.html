@@ -1,9 +1,11 @@
 <div class="background">
-    <form
+    @if (!informationReceived() || tryAgain) {
+        <form
         class="border-box"
         [formGroup]="cancerForm"
         (ngSubmit)="onSubmit()"
-    >
+        >
+
         <div class="headers">
             <header class="title">Lung Histology Classifier</header>
             <header class="instructions">Enter user ID and upload image below</header>
@@ -30,4 +32,23 @@
         
         <button class="submitButton" type="submit" [disabled]="cancerForm.invalid">Check for Cancer</button>
     </form>
+    }
+
+    @else {
+        <div class="border-box">
+            <div class="headers">
+                <header class="title">Lung Histology Classifier</header>
+            </div>
+            <div class="result-section">
+                @if (analysisResult) {
+                    <h2 class="result-header">Analysis Result:</h2>
+                    <p class="result-text">{{ determineResults() }}</p>
+                }
+                @else if (errorMessage) {
+                    <h2 class="error-header">Error unable to determine result.</h2>
+                }
+            </div>
+            <button class="submitButton" (click)="onTryAgain()">Return to main page</button>
+        </div>
+    }
 </div>

@@ -3,19 +3,28 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 
+interface AnalysisResponse {
+  prediction: string;
+}
+
 @Component({
   selector: 'app-cancer-detection',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, HttpClient],
   templateUrl: './cancer-detection.html',
   standalone: true,
   styleUrl: './cancer-detection.css',
 })
+
 export class CancerDetection {
   cancerForm: FormGroup;
   selectedFile: File | null = null;
-  isSubmitting: boolean = false;
+  
+  tryAgain: boolean = true;
 
-  constructor(private fb: FormBuilder) {
+  analysisResult: string | null = null;
+  errorMessage: string | null = null;
+
+  constructor(private fb: FormBuilder, private http: HttpClient) {
     this.cancerForm = this.fb.group({
       medicare: ['', Validators.required],
       photo: [null, [Validators.required]]
@@ -32,12 +41,49 @@ export class CancerDetection {
     this.cancerForm.get('photo')?.updateValueAndValidity();
   }
 
+  determineResults(): string {
+    if (this.analysisResult === 'lung_n'){
+      return "No cancer detected";
+    } else {
+      return "Cancer detected";
+    }
+  }
+
+  informationReceived(): boolean {
+    return this.analysisResult !== null || this.errorMessage !== null;
+  }
+
+  onTryAgain(): void {
+    this.tryAgain = true;
+    this.analysisResult = null;
+    this.errorMessage = null;
+    this.cancerForm.reset();
+    this.selectedFile = null; 
+  }
+
   onSubmit(): void { //TODO: finish
     this.cancerForm.markAllAsTouched();
+    this.tryAgain = false;
 
     if (this.cancerForm.invalid || !this.selectedFile) {
       return; 
     }
+
+    this.errorMessage = null;
+    const formData = new FormData();
+    formData.append('photo', this.selectedFile, this.selectedFile.name);
+
+    // TODO: replace '/api/analyze' endpoint
+    this.http.post<AnalysisResponse>('/predict', formData).subscribe({
+      next: (response) => {
+        this.analysisResult = response.prediction; 
+        console.log('Backend response:', response);
+      },
+      error: (err) => {
+        this.errorMessage = 'Something went wrong analyzing the image.';
+        console.error(err);
+      },
+    });
 
   }
 }
