@@ -177,6 +177,44 @@
 
 .error {
     margin-top: 8px;
-    color: var(--Primitives-Red-600, #EF1C42);
+    color: var(--Primitives-Red-600, #b91c1c);
     font-size: 12px;
+}
+
+.result-section {
+  margin-top: 24px;
+  padding: 20px 24px;
+  border-radius: 16px;
+  background: white;       
+  border: 1px solid rgb(91, 135, 178);;       
+  font-family: 'Inter', sans-serif;
+}
+
+.result-header {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #212529;               
+}
+
+.result-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #0b3b3c;                   
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: white;             
+  display: inline-block;
+}
+
+.error-header {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #b91c1c;           
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
 }

@@ -4,12 +4,12 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 
 interface AnalysisResponse {
-  prediction: string;
+  result: string;
 }
 
 @Component({
   selector: 'app-cancer-detection',
-  imports: [ReactiveFormsModule, CommonModule, HttpClient],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './cancer-detection.html',
   standalone: true,
   styleUrl: './cancer-detection.css',
@@ -42,11 +42,7 @@ export class CancerDetection {
   }
 
   determineResults(): string {
-    if (this.analysisResult === 'lung_n'){
-      return "No cancer detected";
-    } else {
-      return "Cancer detected";
-    }
+    return this.analysisResult ? this.analysisResult : '';
   }
 
   informationReceived(): boolean {
@@ -61,7 +57,7 @@ export class CancerDetection {
     this.selectedFile = null; 
   }
 
-  onSubmit(): void { //TODO: finish
+  onSubmit(): void {
     this.cancerForm.markAllAsTouched();
     this.tryAgain = false;
 
@@ -73,10 +69,9 @@ export class CancerDetection {
     const formData = new FormData();
     formData.append('photo', this.selectedFile, this.selectedFile.name);
 
-    // TODO: replace '/api/analyze' endpoint
     this.http.post<AnalysisResponse>('/predict', formData).subscribe({
       next: (response) => {
-        this.analysisResult = response.prediction; 
+        this.analysisResult = response.result; 
         console.log('Backend response:', response);
       },
       error: (err) => {
