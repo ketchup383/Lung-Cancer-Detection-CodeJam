@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@angular/build": "^20.3.10",
+    "@angular/cli": "^20.3.10",
+    "@angular/compiler-cli": "^20.3.12",
+    "@angular/forms": "^20.3.12"
+  }
+}
