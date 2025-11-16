@@ -20,7 +20,7 @@ The model was trained using Transfer Learning on the LC25000 Lung Histology Imag
 
 The plot below shows the training performance, where the model successfully converged to near-zero loss on the validation set, indicating robust generalization.
 
-![alt text](image.png)
+![alt text](Lung_Cancer-LossPlot.png)
 
 ## 🛠️ Setup and Running the Project
 
@@ -40,9 +40,9 @@ The backend must be started first to ensure the frontend can connect to the runn
 
 * Open your WSL/Ubuntu terminal.
 
-*Navigate to the project root (LUNG-CANCER-DETECTION-CODEJAM/).
+* Navigate to the project root (LUNG-CANCER-DETECTION-CODEJAM/).
 
-*Activate the Python environment: **source venv_311/Scripts/activate**
+* Activate the Python environment: **source venv_311/Scripts/activate**
 
 
 * Start the FastAPI server: **python -m uvicorn backend.main:app --reload**
