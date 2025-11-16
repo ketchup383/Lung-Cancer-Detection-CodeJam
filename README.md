@@ -26,7 +26,7 @@ The plot below shows the training performance, where the model successfully conv
 
 To run this project, you need two separate terminals—one for the backend (Python) and one for the frontend (Angular).
 
-**NOTE: All Python commands must be executed within the activated venv_311 environment.**
+*NOTE: All Python commands must be executed within the activated venv_311 environment.*
 
 ### Prerequisites
 
@@ -42,10 +42,10 @@ The backend must be started first to ensure the frontend can connect to the runn
 
 * Navigate to the project root (LUNG-CANCER-DETECTION-CODEJAM/).
 
-* Activate the Python environment: **source venv_311/Scripts/activate**
+* Activate the Python environment: *source venv_311/Scripts/activate*
 
+* Start the FastAPI server: *python -m uvicorn backend.main:app --reload*
 
-* Start the FastAPI server: **python -m uvicorn backend.main:app --reload**
 --> Wait for the console to display: INFO: Application startup complete.
 
 Step 2: Start the Frontend (Angular)
@@ -56,13 +56,14 @@ Step 2: Start the Frontend (Angular)
 
 * Navigate to the Angular project directory (e.g., cd frontend/ui).
 
-* Run the serve command: **ng serve**
+* Run the serve command: *ng serve*
+
 --> Wait for the console to display: Compiled successfully. Angular Live Development Server is listening on localhost:4200
 
 Step 3: Access the Application
 
 Open your web browser and navigate to:
 
-$$\text{http://localhost:4200}$$
+http://localhost:4200
 
 You can now upload a histology image patch (JPEG or PNG) and see the prediction returned by the PyTorch model running in the FastAPI backend!
